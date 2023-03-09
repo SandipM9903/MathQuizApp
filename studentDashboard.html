@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Student Interface</title>
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-database.js"></script>
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpCsj36AJcq5sC2WGtluw8yWDDIS4lSGE",
+            authDomain: "studentteacher-3b0e2.firebaseapp.com",
+            databaseURL: "https://studentteacher-3b0e2-default-rtdb.firebaseio.com",
+            projectId: "studentteacher-3b0e2",
+            storageBucket: "studentteacher-3b0e2.appspot.com",
+            messagingSenderId: "209990000972",
+            appId: "1:209990000972:web:3bbf97ee3b546122ea6fe9"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Get a reference to the database service
+        const database = firebase.database();
+
+        // Listen for changes to the questions in the database
+        database.ref('questions').on('value', (snapshot) => {
+            const questions = snapshot.val();
+            const tableBody = document.querySelector('tbody');
+
+            // Clear the table
+            tableBody.innerHTML = '';
+
+            // Loop through each question and add it to the table
+            for (const [questionId, question] of Object.entries(questions)) {
+                const { firstNumber, secondNumber, operation } = question;
+
+                // Create a row for the question
+                const row = document.createElement('tr');
+                tableBody.appendChild(row);
+
+                // Add the question details to the row
+                const questionText = document.createElement('td');
+                questionText.textContent = `${firstNumber} ${operation} ${secondNumber} = `;
+                row.appendChild(questionText);
+
+                // Add an input for the answer
+                const answerInput = document.createElement('input');
+                answerInput.type = 'number';
+                answerInput.name = questionId;
+                row.appendChild(answerInput);
+
+                // Add a submit button for the answer
+                const submitButton = document.createElement('button');
+                submitButton.textContent = 'Submit';
+                row.appendChild(submitButton);
+
+                // Listen for the submit button click
+                submitButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    const answer = answerInput.value;
+
+                    // Check if the answer is correct
+                    let isCorrect = false;
+                    if (operation === 'addition') {
+                        isCorrect = firstNumber + secondNumber == answer;
+                    } else if (operation === 'subtraction') {
+                        isCorrect = firstNumber - secondNumber == answer;
+                    } else if (operation === 'multiplication') {
+                        isCorrect = firstNumber * secondNumber == answer;
+                    } else if (operation === 'division') {
+                        isCorrect = firstNumber / secondNumber == answer;
+                    }
+
+                    if (isCorrect) {
+                        // Disable the question
+                        answerInput.disabled = true;
+                        submitButton.disabled = true;
+
+                        // Update the database to reflect the answer
+                        database.ref(`questions/${questionId}/answer`).set(answer);
+                    } else {
+                        // Show an error message
+                        alert('Incorrect answer. Please try again.');
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+<style>
+    /* Heading Style */
+    h1 {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    /* Table Style */
+    table {
+        margin: 0 auto;
+        width: 80%;
+        border-collapse: collapse;
+        border: 1px solid #ccc;
+    }
+
+    th {
+        background-color: #333;
+        color: #fff;
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ccc;
+    }
+
+    td {
+        padding: 10px;
+        border: 1px solid #ccc;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    tbody tr:hover {
+        background-color: #ddd;
+    }
+</style>
+
+<body>
+    <h1>Student Interface</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Question</th>
+                <th>Answer</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</body>
+
+</html>
